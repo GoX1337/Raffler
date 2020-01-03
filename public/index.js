@@ -1,4 +1,5 @@
 let stream = false;
+let raffle = false;
 
 window.onload = () => {
 	document.getElementById("streamButton").value = "Start tweets stream";
@@ -21,11 +22,22 @@ let streamGet = (start) => {
 	fetch(start ? "/stream/start" : "/stream/stop", {
 		method: "GET"
 	})
-		.then(doc => {
-		})
-		.catch(err => {
-			console.log(err);
-		});
+	.then(doc => {
+	})
+	.catch(err => {
+		console.log(err);
+	});
+}
+
+let raffleGet = (start) => {
+	fetch(start ? "/raffle/start" : "/raffle/stop", {
+		method: "GET"
+	})
+	.then(doc => {
+	})
+	.catch(err => {
+		console.log(err);
+	});
 }
 
 let streamButtonClick = () => {
@@ -37,4 +49,15 @@ let streamButtonClick = () => {
 		stream = false;
 	}
 	streamGet(stream);
+}
+
+let raffleButtonClick = () => {
+	if (!raffle) {
+		document.getElementById("raffleButton").value = "Stop raffle";
+		raffle = true;
+	} else {
+		document.getElementById("raffleButton").value = "Start raffle";
+		raffle = false;
+	}
+	raffleGet(raffle);
 }

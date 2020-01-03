@@ -62,4 +62,14 @@ router.get('/stream', (req, res) => {
     res.status(200).send({ state: twitter.getStream() });
 });
 
+router.get('/raffle/start', (req, res) => {
+    twitter.startRaffle();
+    res.status(200).send("raffle started");
+});
+
+router.get('/raffle/stop', (req, res) => {
+    twitter.stopRaffle();
+    res.status(200).send("raffle stopped");
+});
+
 module.exports = router;
