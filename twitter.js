@@ -11,6 +11,7 @@ const twitter = new Twitter({
 
 let raffleStream = null;
 let raffleTimer = null;
+let delay = 5;
 
 let oembedUpdate = () => {
     twitter.get('statuses/oembed', { id: tweet.id_str }, (err, response) => {
@@ -30,23 +31,29 @@ let oembedUpdate = () => {
     });
 }
 
-let retweet = (tweet) => {
-	twitter.post('statuses/retweet/' + tweet.id_str, (err, tweet, response) => {
-		if (err) {
-            logger.error("RT failed " + JSON.stringify(err));
-            return;
-		} else {
-            logger.info("RT " + tweet.id_str + " OK");
-		}
-	});
+let retweet = async (tweet) => {
+    return new Promise(resolve => {
+        twitter.post('statuses/retweet/' + tweet.id_str, (err, tweet, response) => {
+            if (err) {
+                logger.error("RT failed " + JSON.stringify(err));
+            } else {
+                logger.info("RT " + tweet.id_str + " OK");
+    
+            }
+            resolve();
+        });  
+    });
 }
 
-let followUser = (tweet, user) => {
-	twitter.post('friendships/create', { user_id: user.id_str, follow: true }, (err, resp) => {
-		if (err)
-			logger.error("Follow " + user.id_str + " failed cause:" + JSON.stringify(err));
-		logger.info("Follow " + user.id_str + " done (" + tweet.id_str + ")");
-	});
+let followUser = async (tweet, user) => {
+    return new Promise(resolve => {
+        twitter.post('friendships/create', { user_id: user.id_str, follow: true }, (err, resp) => {
+            if (err)
+                logger.error("Follow " + user.id_str + " failed cause:" + JSON.stringify(err));
+            logger.info("Follow " + user.id_str + " done (" + tweet.id_str + ")");
+            resolve();
+        });
+    });
 }
 
 let buildTweetUrl = (tweet) => {
@@ -104,30 +111,43 @@ let processError = (err) => {
     logger.error("processError " + JSON.stringify(err));
 }
 
-let raffleProcess = () => {
-    db.get().collection("tweets").find({"processed" : { $ne: true }}).sort({_id: 1}).limit(1).toArray((err, result) => {
-        if (err) {
-            logger.error(err);
-        }
-        let tweet = result[0];
-        let inst = getInstructions(tweet);
-        if(inst.rt){
-            retweet(tweet);
-        }
-        if(inst.follow && tweet.entities && tweet.entities.user_mentions){
-            tweet.entities.user_mentions.forEach(user => {
-                followUser(tweet, user);
-            });
-        }
+let getOneTweetToRaffle = async () => {
+    return new Promise(resolve => {
+        db.get().collection("tweets").find({"processed" : { $ne: true }}).sort({_id: 1}).limit(1).toArray((err, result) => {
+            if(!err){
+                resolve(result[0]);
+            }
+        }); 
+    });
+}
 
+let updateTweet = async (tweet, inst) => {
+    return new Promise(resolve => {
         db.get().collection("tweets").updateOne({ "_id": tweet._id }, { $set: {processed: true} }, (err, result) => {
             if (err) {
                 logger.error("update processed : " + JSON.stringify(err));
                 return;
             }
             logger.info("Raffle processed tweet " + tweet.id_str + " " + JSON.stringify(inst));
+            resolve();
         });
     });
+}
+
+let raffleProcess = async () => {
+    let tweet = await getOneTweetToRaffle();
+    let inst = getInstructions(tweet);
+    if(inst.rt){
+        await retweet(tweet);
+    }
+    if(inst.follow && tweet.entities && tweet.entities.user_mentions){
+        await Promise.all(
+            tweet.entities.user_mentions.map(user => {
+                followUser(tweet, user);
+            })
+        );
+    }
+    await updateTweet(tweet, inst);
 };
 
 module.exports.startStream = () => {
@@ -149,7 +169,7 @@ module.exports.stopStream = () => {
 
 module.exports.startRaffle = () => {
     logger.info("Start raffle");
-    raffleTimer = setInterval(raffleProcess, 30000);
+    raffleTimer = setInterval(raffleProcess, delay * 1000);
 }
 
 module.exports.stopRaffle = () => {
