@@ -56,6 +56,14 @@ let followUser = async (tweet, user) => {
     });
 }
 
+let countTweets = async (query) => {
+    return new Promise(resolve => {
+        db.get().collection("tweets").countDocuments(query, (err, count) => {
+            resolve(count);
+        });
+    });
+}
+
 let buildTweetUrl = (tweet) => {
     return "https://twitter.com/" + tweet.user.screen_name + "/status/" + tweet.id_str;
 }
@@ -184,3 +192,8 @@ module.exports.getStream = () => {
     return raffleStream ? true : false;
 }
 
+module.exports.raffleStats = async () => {
+    let total = await countTweets();
+    let processed = await countTweets({ processed: true });
+    return { total:total, processed: processed };
+}

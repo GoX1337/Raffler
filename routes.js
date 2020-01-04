@@ -72,4 +72,9 @@ router.get('/raffle/stop', (req, res) => {
     res.status(200).send("raffle stopped");
 });
 
+router.get('/raffle/stats', async (req, res) => {
+    let counters = await twitter.raffleStats();
+    res.status(200).send(counters);
+});
+
 module.exports = router;
