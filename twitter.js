@@ -93,7 +93,7 @@ let processTweet = (t) => {
         logger.info(url);
     }
 
-    db.get().collection("tweets").findOne({ id: tweet.id_str }, (err, tweetDb) => {
+    db.get().collection("tweets").findOne({ id_str: tweet.id_str }, (err, tweetDb) => {
         if (!tweetDb) {
             db.get().collection("tweets").insertOne(tweet, (err, result) => {
                 if (err) {
@@ -126,7 +126,7 @@ let updateTweet = async (tweet, inst) => {
         db.get().collection("tweets").updateOne({ "_id": tweet._id }, { $set: {processed: true} }, (err, result) => {
             if (err) {
                 logger.error("update processed : " + JSON.stringify(err));
-                return;
+                throw new Error();
             }
             logger.info("Raffle processed tweet " + tweet.id_str + " " + JSON.stringify(inst));
             resolve();
