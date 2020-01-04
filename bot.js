@@ -14,6 +14,6 @@ app.listen(config.port, () => {
 			logger.error("Problem to connect to mongodb.", err);
 			process.exit(1);
         }
-        logger.info("Start bot raffler");
+        logger.info("BOT Started");
 	});
 });
