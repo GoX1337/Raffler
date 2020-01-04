@@ -140,9 +140,9 @@ let raffleProcess = async () => {
     if(inst.rt){
         await retweet(tweet);
     }
-    if(inst.follow && tweet.entities && tweet.entities.user_mentions){
+    if(inst.follow && tweet.extended_tweet && tweet.extended_tweet.entities && tweet.extended_tweet.entities.user_mentions){
         await Promise.all(
-            tweet.entities.user_mentions.map(user => {
+            tweet.extended_tweet.entities.user_mentions.map(user => {
                 followUser(tweet, user);
             })
         );
