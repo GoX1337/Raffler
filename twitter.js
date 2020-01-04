@@ -11,7 +11,7 @@ const twitter = new Twitter({
 
 let raffleStream = null;
 let raffleTimer = null;
-let delay = 5;
+let delay = 30;
 
 let oembedUpdate = () => {
     twitter.get('statuses/oembed', { id: tweet.id_str }, (err, response) => {
