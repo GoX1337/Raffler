@@ -17,6 +17,7 @@ let raffleStarted = false;
 const delay = 30;
 const RAFFLE = "RAFFLE";
 const STREAM = "STREAM";
+let followCount = 0;
 
 let retweet = async (tweet) => {
     return new Promise(resolve => {
@@ -39,6 +40,7 @@ let followUser = async (tweet, user) => {
                 reject(new Error("Whoops!"));
             } else {
                 logger.info(RAFFLE + " Follow " + user.id_str + " done (" + tweet.id_str + ")");
+                followCount++;
                 resolve();
             }
         });
@@ -157,18 +159,21 @@ let raffleProcess = async () => {
             })
         ).catch(e => {
             logger.warn(RAFFLE + " cant follow an user, cancel raffle");
+            logger.info("FOLLOW success");
             followFailed = true;
         });
     }
  
     // An user follow failed, we stop here, and will process this tweet later 
     if(followFailed){
-        this.stopRaffle();
         let now = moment(); 
         let tomorrow = moment().add(1, 'day');
         tomorrow.set({hour:0,minute:0,second:0,millisecond:0});
         let duration = moment.duration(tomorrow.diff(now));
-        logger.warn(RAFFLE + " frezze raffle timer for " + duration + " ms");
+        logger.warn(RAFFLE + " frezze raffle timer for " + duration + " ms after followed " + followCount + " users");
+        this.stopRaffle();
+        followCount = 0;
+        
         setTimeout(() => {
             this.startRaffle();
         }, duration);
