@@ -146,6 +146,7 @@ let raffleProcess = async () => {
         return;
     }
 
+    logger.info(RAFFLE + " " + buildTweetUrl(tweet));
     logger.info(RAFFLE + " 1-----------------");
     if(inst.rt){
         await retweet(tweet);
