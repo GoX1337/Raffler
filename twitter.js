@@ -37,7 +37,11 @@ let followUser = async (tweet, user) => {
         twitter.post('friendships/create', { user_id: user.id_str, follow: true }, (err, resp) => {
             if (err){
                 logger.error(RAFFLE + " Follow " + user.id_str + " failed cause:" + JSON.stringify(err));
-                reject(new Error("Whoops!"));
+                if(err[0].code != 108){
+                    reject(new Error("Whoops!"));
+                } else {
+                    resolve();
+                }
             } else {
                 logger.info(RAFFLE + " Follow " + user.id_str + " done (" + tweet.id_str + ")");
                 followCount++;
