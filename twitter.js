@@ -18,6 +18,7 @@ const delay = 30;
 const RAFFLE = "RAFFLE";
 const STREAM = "STREAM";
 let followCount = 0;
+let totalFollowCount = 0;
 
 let retweet = async (tweet) => {
     return new Promise(resolve => {
@@ -45,6 +46,7 @@ let followUser = async (tweet, user) => {
             } else {
                 logger.info(RAFFLE + " Follow " + user.id_str + " done (" + tweet.id_str + ")");
                 followCount++;
+                totalFollowCount++;
                 resolve();
             }
         });
@@ -191,7 +193,7 @@ let raffleProcess = async () => {
 };
 
 module.exports.startStream = () => {
-    logger.info("BOT Start stream");
+    logger.info("BOT STREAM Start stream");
     streamStarted = true;
     twitter.stream('statuses/filter', { track: '#CONCOURS, CONCOURS' }, stream => {
         raffleStream = stream;
@@ -201,7 +203,7 @@ module.exports.startStream = () => {
 }
 
 module.exports.stopStream = () => {
-    logger.info("BOT Stop stream");
+    logger.info("BOT STREAM Stop stream");
     streamStarted = false;
     if (raffleStream) {
         raffleStream.destroy();
@@ -210,13 +212,13 @@ module.exports.stopStream = () => {
 }
 
 module.exports.startRaffle = () => {
-    logger.info("BOT Start raffle");
+    logger.info("BOT RAFFLE Start raffle");
     raffleStarted = true;
     raffleTimer = setInterval(raffleProcess, delay * 1000);
 }
 
 module.exports.stopRaffle = () => {
-    logger.info("BOT Stop raffle");
+    logger.info("BOT RAFFLE Stop raffle");
     raffleStarted = false;
     if(raffleTimer){
         clearInterval(raffleTimer);
@@ -231,5 +233,5 @@ module.exports.getStream = () => {
 module.exports.raffleStats = async () => {
     let total = await countTweets();
     let processed = await countTweets({ processed: true });
-    return { total:total, processed: processed };
+    return { total:total, processed: processed, followCount: followCount, totalFollowCount: totalFollowCount};
 }
